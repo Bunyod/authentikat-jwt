@@ -1,41 +1,35 @@
+import sbt.Keys.useCoursier
+
 name := "authentikat-jwt"
 
-organization := "com.jason-goodwin"
+crossScalaVersions := Seq("2.11.11", "2.12.10", "2.13.3") //sbt '+ publish'
+scalafixDependencies in ThisBuild += "com.geirsson" %% "example-scalafix-rule" % "1.3.0"
+addCompilerPlugin(scalafixSemanticdb)
 
-scalaVersion := "2.12.2"
+inThisBuild(
+  List(
+    scalaVersion := "2.13.3", // 2.11.12, or 2.13.3
+    Global / onChangedBuildSource := ReloadOnSourceChanges,
+    semanticdbEnabled := true, // enable SemanticDB
+    semanticdbVersion := scalafixSemanticdb.revision, // use Scalafix compatible version
+    parallelExecution := false,
+    useCoursier := false
+  )
+)
 
-crossScalaVersions := Seq("2.10.6", "2.11.11", "2.12.2") //sbt '+ publish'
-
-parallelExecution := false
-
-scalacOptions ++= Seq("-unchecked", "-deprecation")
+scalacOptions ++= Seq(
+  "-unchecked",
+  "-deprecation",
+//  "-Yrangepos", // required by SemanticDB compiler plugin
+  "-Ywarn-unused" // required by `RemoveUnused` rule
+)
 
 libraryDependencies ++= Seq(
-  "commons-codec" % "commons-codec" % "1.10",
-  "org.json4s" %% "json4s-native" % "3.5.2",
-  "org.json4s" %% "json4s-jackson" % "3.5.2",
-  "org.scalatest" %% "scalatest" % "3.0.3" % Test
+  "commons-codec" % "commons-codec" % "1.15",
+  "org.json4s" %% "json4s-native" % "3.7.0-M7",
+  "org.json4s" %% "json4s-jackson" % "3.7.0-M7",
+  "org.scalatest" %% "scalatest" % "3.2.3" % Test
 )
-
-credentials += Credentials(Path.userHome / ".mdialog.credentials")
-
-resolvers ++= Seq(
-  "Typesafe Repository" at "http://repo.typesafe.com/typesafe/releases/"
-)
-
-publishMavenStyle := true
-
-publishTo := {
-  val nexus = "https://oss.sonatype.org/"
-  if (isSnapshot.value)
-    Some("snapshots" at nexus + "content/repositories/snapshots")
-  else
-    Some("releases"  at nexus + "service/local/staging/deploy/maven2")
-}
-
-publishArtifact in Test := false
-
-pomIncludeRepository := { _ => false }
 
 pomExtra := (
   <url>http://github.com/jason-goodwin.com/authentikat-jwt</url>
@@ -57,8 +51,3 @@ pomExtra := (
       <url>http://refactoringfactory.wordpress.com</url>
     </developer>
   </developers>)
-
-credentials += Credentials("Sonatype Nexus Repository Manager",
-                           "oss.sonatype.org",
-                           "<your username>",
-                           "<your password>")
